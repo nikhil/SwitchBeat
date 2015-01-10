@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+    <meta charset="utf-8">
+	<title>SwitchBeat</title>
+	<link href='http://fonts.googleapis.com/css?family=Lato|Great+Vibes' rel='stylesheet' type='text/css'>
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="-1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+   <link href="css/bootstrap.css" rel="stylesheet">
+   <link href="css/font-awesome.css" rel="stylesheet">
+   <link href="css/font-mfizz.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link href="css/bootstrap-responsive.css" rel="stylesheet">
+	
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<script src="javascript/jquery.min.js"></script>
+<script type="text/javascript" src='javascript/remix.js'></script>
+<script src="javascript/bootstrap.min.js"></script>
+<script src="javascript/raphael-min.js"></script>
+<script src="javascript/Chart.js"></script>
+
+<script type="text/javascript">
+
+// Remix with any track.
+// To build your own back-end, take a look at remix-server:  
+//switchbeat
+var apiKey = 'AGZLSWIPISDC1OMHC';
+var trackID;
+var trackURL;
+var driver;
+var diffrence =0;
+
+var paper;
+var blocks = [];
+var blocks1 = [];
+var selectedTile;
+
+var maxTimbre =0;
+var minTimbre =0;
+var maxTimbre1 =0;
+var minTimbre1 =0;
+
+var remixer;
+var player;
+var track;
+var track1;
+var track2;
+var trid1;
+var trid2;
+var remixed;
+
+var theCodeMirror;
+var wavesurfer;
+var remixedWaveSurfer;
+var fs;
+var myBarChartL;
+var myBarChartP;
+var myBarChartT;
+var test =0;
+var xhr;
+var ctxProg;
+var ProgChart;
+var ctxProg1;
+var ProgChart1;
+var MashUpStarted =0;
+
+var firstUpload =0;
+var secondUpload=0;
+var myPieChart;
+
+var gradCounter = 1;
+
+var timbreW =30;
+var pitchW =40;
+var loudStartW = 10;
+var loudMaxW =10;
+var durationW =100;
+var confidenceW =10;
+
+var midh =0;
+
+var diffMean = 0;
+var diffStd = 0;
+var diffArray = [];
+
+var firstTrackIndex = [];
+var secondTrackIndex = [];
+var blockDiffList = [[]];
+var jumpedNum =0;
+var isPlaying =0;
+var isStopped = 0;
+
+function createChart()
+{
+
+var ctxL = document.getElementById("myChartL").getContext("2d");
+var ctxP = document.getElementById("myChartP").getContext("2d");
+var ctxT = document.getElementById("myChartT").getContext("2d");
+var ctxTrack = document.getElementById("myChartTrack").getContext("2d");
+
+var dataL = {
+    labels: ["Loudness"],
+    datasets: [
+        {
+            label: "Music dataset",
+            fillColor: "#5e2d79",
+            strokeColor: "#5e2d79",
+            highlightFill: "#8942b1",
+            highlightStroke: "#8942b1",
+            data: [0]
+        }
+        ]
+};
+var dataP = {
+    labels: ["Pitch"],
+    datasets: [
+        {
+            label: "Music dataset",
+            fillColor: "#0080ff",
+            strokeColor: "#0080ff",
+            highlightFill: "#4da6ff",
+            highlightStroke: "#4da6ff",
+            data: [0]
+        }
+        ]
+};
+var dataT = {
+    labels: ["Timbre"],
+    datasets: [
+        {
+            label: "Music dataset",
+            fillColor: "#006868",
+            strokeColor: "#006868",
+            highlightFill: "#009b9b",
+            highlightStroke: "#009b9b",
+            data: [0]
+        }
+        ]
+};
+var dataTrack = [
+    {
+        value: 1,
+        color:"#4fffd3",
+        highlight: "#69ffd9",
+        label: "Track 1"
+    },
+    {
+        value: 0,
+        color: "#7a4eff",
+        highlight: "#8d68ff",
+        label: "Track 2"
+    }
+];
+   
+
+
+myBarChartL = new Chart(ctxL).Bar(dataL, {scaleBeginAtZero : false,  scaleShowGridLines : false,showScale: false, animationSteps: 30, showTooltips: false, animationEasing: "easeOutQuad", barValueSpacing : 0 , segmentStrokeColor : "#fdf6e3"});
+myBarChartP = new Chart(ctxP).Bar(dataP, {scaleBeginAtZero : false,  scaleShowGridLines : false,showScale: false, animationSteps: 30, showTooltips: false,animationEasing: "easeOutQuad", barValueSpacing : 0, segmentStrokeColor : "#fdf6e3"});
+myBarChartT = new Chart(ctxT).Bar(dataT, {scaleBeginAtZero : false,  scaleShowGridLines : false,showScale: false, animationSteps: 30, showTooltips: false,animationEasing: "easeOutQuad",barValueSpacing : 0 , segmentStrokeColor : "#fdf6e3"});
+myPieChart = new Chart(ctxTrack).Pie(dataTrack,{animationEasing: "linear", segmentStrokeColor : "#fdf6e3", animationSteps: 10});
+	
+}
+function createBlocks(trackNum){
+
+if(trackNum ==1)
+{	
+	var cblocks =[];
+	var beats = track1.analysis.beats;
+
+	for(var i =0; i< beats.length; i++)
+	{
+		
+		cblocks.push(createBlock(i,beats[i],1));	
+
+	}	
+
+	return cblocks;
+}	
+else if(trackNum ==2)
+{	
+	var cblocks =[];
+	var beats = track2.analysis.beats;
+
+	for(var i =0; i< beats.length; i++)
+	{
+		
+		cblocks.push(createBlock(i,beats[i],2));	
+
+	}	
+
+	return cblocks;
+}	
+
+
+}
+
+function playClicked(){
+
+
+	start();
+
+}	
+
+var blocktype =  {
+	 normalColor:"#5f9",
+	 
+	  move: function(x,y) {
+	
+		 this.rect.attr({x:x, y:y});
+		 this.x =x;
+		 this.y =y;
+
+		 
+
+	 },	 
+	 
+	 play:function(){
+		
+		 player.play(0,this.beat);
+
+	 },
+
+	  position: function() {
+        return {
+            x: this.x,
+            y: this.y
+        }
+    },
+
+	 playStyle: function() {
+        this.rect.attr("fill", "#FF9");
+    },
+
+	 normal: function() {
+        this.rect.attr("fill", this.normalColor);
+    },
+	
+	 select: function(){
+		 this.rect.attr("fill", "#114141");
+		
+
+		
+	 },	 
+
+	init:function() {
+        var that = this;
+	}	
+
+}
+
+function setnormvalues(trackNum){
+
+if(trackNum ==1)
+{	
+	var segmentlist = track1.analysis.segments;
+	var timbrelist;
+	var timbreSum;
+	var timbreMean;
+	for(var i =0; i<segmentlist.length; i++)
+	{	
+		if(segmentlist[i])
+		{	
+		timbrelist = segmentlist[i].timbre;
+		}
+			
+		timbreSum =0;
+		for(var j=0; j<timbrelist.length; j++)
+		{
+			timbreSum = timbreSum +  timbrelist[j];
+
+		}
+		
+		timbreMean = timbreSum/timbrelist.length;
+			if(timbreMean<minTimbre)
+			{
+				minTimbre = timbreMean;	
+			}
+			if(timbreMean>maxTimbre)
+			{
+				
+				maxTimbre = timbreMean;
+			
+			}	
+	
+
+
+
+
+	}	
+}
+else if(trackNum ==2)
+{	
+	var segmentlist = track2.analysis.segments;
+	var timbrelist;
+	var timbreSum;
+	var timbreMean;
+	for(var i =0; i<segmentlist.length; i++)
+	{	
+		if(segmentlist[i])
+		{	
+		timbrelist = segmentlist[i].timbre;
+		}
+			
+		timbreSum =0;
+		for(var j=0; j<timbrelist.length; j++)
+		{
+			timbreSum = timbreSum +  timbrelist[j];
+
+		}
+		
+		timbreMean = timbreSum/timbrelist.length;
+			if(timbreMean<minTimbre)
+			{
+				minTimbre1 = timbreMean;	
+			}
+			if(timbreMean>maxTimbre)
+			{
+				
+				maxTimbre1 = timbreMean;
+			
+			}	
+	
+
+
+
+
+	}	
+}
+
+
+
+
+
+}
+
+function getNormColor(segment){
+
+	var sum = 0;
+	var timbrelist = segment.timbre;
+
+	for(var i =0; i<timbrelist.length;i++)
+	{
+		
+		sum = sum + timbrelist[i];
+		
+
+	}	
+	
+	var mean = sum/(timbrelist.length);
+
+	var norm = (mean - minTimbre) / (maxTimbre - minTimbre);
+
+	norm = norm * 16776960;
+	return norm;	
+}		
+function convertToHex(norm)
+{	
+	var normAsInt = Math.round(norm);
+
+	var normStr = Number(normAsInt).toString(16);
+
+	return "#" + normStr;
+	
+}	
+function getBlockColor(block,inputedbeat)
+{
+var color =0;
+var meanLoudness =0;
+var meanPitches = 0;
+var segmentPitch;
+var pitchList;
+	var segmentlist = inputedbeat.overlappingSegments;
+
+	for(var i=0; i<segmentlist.length; i++)
+	{
+		color = color + getNormColor(segmentlist[i]);
+		meanLoudness = meanLoudness +segmentlist[i].loudness_max;
+		
+		pitchList = segmentlist[i].pitches;
+		
+		segmentPitch =0;
+
+		for(var a=0; a<pitchList.length; a++)
+		{
+		
+			segmentPitch = segmentPitch + pitchList[a];
+
+
+		}	
+
+		meanPitches = meanPitches + (segmentPitch/pitchList.length); 
+
+
+
+		
+
+	}	
+
+	color = color/segmentlist.length;
+	meanLoudness = meanLoudness/segmentlist.length;
+	meanPitches = meanPitches/segmentlist.length;
+	
+	if(block)
+	{	
+	block.timbre =color;
+	block.pitch = meanPitches;
+	block.loudness = meanLoudness;
+	}
+
+
+	return convertToHex(color);
+
+
+
+}	
+
+function drawLine(block1,block2)
+{
+
+	
+var block1num = 0;
+var block2num = 0;
+var line;
+
+while(block1.Line[block1num])
+{
+
+	block1num = block1num +1;
+
+}	
+while(block2.Line[block2num])
+{
+
+	block2num = block2num +1;
+
+}	
+
+var gradId = "grad"+gradCounter;
+gradCounter = gradCounter +1;
+
+paper.defineLinearGradient(gradId, [{
+    "id": "s1",
+    "offset": "0",
+    "style": "stop-color:"+block2.normalColor+";stop-opacity:1;"},
+{
+    "id": "s2",
+    "offset": "1",
+    "style": "stop-color:"+block1.normalColor+";stop-opacity:1;"}]);
+
+
+var block1x = block1.x +(1/2)*block1.width;
+var block1y = block1.y +(1/2)*block1.height;
+var block2x = block2.x +(1/2)*block2.width;
+var block2y = block2.y + (1/2)*block2.height;
+var referencew = 0;
+var referenceh = 0;
+	if(block1x<=block2x)
+	{
+		referencew = Math.floor(Math.random()*(block2x - block1x)) + block1x;
+	
+
+	}
+	else
+	{
+		referencew = Math.floor(Math.random()*(block1x - block2x)) + block2x;
+
+
+	}
+	if(block1y<=block2y)
+	{
+
+
+		referenceh = Math.floor(Math.random()*(block2y - block1y)) + block1y;
+
+
+
+	}
+	else
+	{
+
+		referenceh = Math.floor(Math.random()*(block1y - block2y)) + block2y;
+
+	}	
+
+
+
+
+
+
+line = paper.path(['M',block1x,block1y, 'Q',referencew ,referenceh, block2x,block2y]);
+
+line.strokeLinearGradient (gradId, 2);
+
+block1.Line[block1num] = line;
+block1.otherIndex[block1num] = block2.number;
+block1.otherLineIndex[block1num] = block2num;
+block1.LineDefId [block1num] = gradId;
+
+block2.Line[block2num] = line;
+block2.otherIndex[block2num] = block1.number;
+block2.otherLineIndex[block2num] = block1num;
+block2.LineDefId[block2num] = gradId;
+
+
+
+
+
+}
+function createBlock(number,beat,trackNum)
+{
+	var labeled = false;
+	var block = Object.create(blocktype);
+	block.number = number;
+	block.trackNum = trackNum;
+	block.width = 11;
+	block.height = 11;
+	block.timbre =0;
+	block.loudness =0;
+	block.pitch = 0;
+	block.Line = [];
+	block.LineDefId = [];
+	block.otherIndex = [];
+	block.otherLineIndex = [];
+	block.normalColor = getBlockColor(block,beat);
+
+	block.rect = paper.rect(0,0,block.width, block.height);
+	block.rect.attr("stroke", "#349");
+	block.rect.block = block;
+	block.normal();
+	block.beat = beat;
+	block.init();
+	return block;
+	
+
+
+	
+}
+function Mashup(tracknum){
+
+                   
+						if(tracknum == 1)
+						{	
+					 		waitForTrack2();
+
+						}
+						else if(tracknum == 2)
+						{
+							paper = Raphael("tiles",6, 4);
+							setnormvalues(1);
+							setnormvalues(2);
+							createChart();
+							blocks = createBlocks(1);
+							blocks1 = createBlocks(2);
+							Layout();
+							calculateLinks();
+							
+
+
+						}	
+
+
+
+                        $('#beginRemix').removeAttr('disabled');
+                      
+
+
+
+
+
+
+
+}
+
+
+function waitForTrack2()
+{
+setTimeout(function () {
+	if(!track2)
+	{	
+	waitForTrack2();
+
+	}
+	else if(track2.status != 'ok')
+	{	
+	waitForTrack2();
+	}
+	else
+	{
+		Mashup(2);
+		return 0;
+	}	
+		}, 100);
+
+
+
+
+
+}	
+
+var margin = 15;
+var top = 100;
+var tilesPerGroup = 4;
+var tspace = 3;
+var tilesPerRow = 0;
+var spaceInbetween = 200;
+
+function Layout()
+{
+
+var num = blocks.length;
+var num1 = blocks1.length;
+
+if(num>0 && num1>0)
+	{	
+		var w = $(window).width();
+		var h = $(window).height()-top;
+		var rw = w - margin *2;
+		var rh = h - margin *2;
+		var tilesPerRow = Math.floor(rw/14);
+		h = (Math.ceil(num/tilesPerRow) * 16) + 2*tspace + spaceInbetween + (Math.ceil(num1/tilesPerRow) * 16) + 20;
+		paper.setSize(w,h);
+
+
+		var xstart =0;
+		var ystart =0;
+
+		for(var i=0; i<blocks.length; i++)
+		{
+			var block = blocks[i];
+
+			if(i % tilesPerRow == 0)
+			{
+				xstart = 0;
+				ystart = ystart + block.height +tspace;
+
+
+			}
+
+			block.move(xstart,ystart);
+
+			xstart = xstart + block.width + tspace;
+
+
+
+
+		}	
+		$(".MusicStatus").css("position","relative");
+		var middleHeight = (h-(ystart + block.height + spaceInbetween/2)) * -1;
+		middleHeight = middleHeight - 37.5;
+		midH = middleHeight;
+		middleHeight = middleHeight +"px";
+		var middleWidth = (-1 * w/2)+200 + "px";
+		midW = (-1*w/2)+200;
+		
+		$(".MusicStatus").css({top: middleHeight, right: middleWidth});
+
+		ystart = ystart + block.height + spaceInbetween;
+		xstart = 0;
+
+		for(var i=0; i<blocks1.length; i++)
+		{
+			var block = blocks1[i];
+
+			if(i % tilesPerRow == 0)
+			{
+				xstart = 0;
+				ystart = ystart + block.height +tspace;
+
+
+			}
+
+			block.move(xstart,ystart);
+
+			xstart = xstart + block.width + tspace;
+
+
+
+
+		}	
+
+
+
+
+
+
+
+
+	}	
+
+}
+
+
+
+function start()
+{	
+
+	if(isPlaying == 0)
+	{
+	isPlaying = 1;
+	isStopped =0;
+	play(1,-1,0,0);
+	}
+
+}
+function play(track,num,pTrack,pNum)
+{
+if(isStopped!=1)
+{	
+if(track == 1 && num>=blocks.length && sessionStorage.isInfinite ==1)
+{
+	play(2,0,1,blocks.length-1);
+
+		
+}
+else if(track ==2 && num>=blocks1.length && sessionStorage.isInfinite ==1)
+{
+	play(1,0,2,blocks1.length-1);
+
+
+
+}
+else
+{	
+if(track == 1)
+{
+
+	if(num != -1)
+	{	
+		var delay = blocks[num].beat.duration;
+		player.queue(blocks[num].beat);
+	}
+	else
+	{
+		var delay = blocks[0].beat.duration;
+		player.queue(blocks[0].beat);
+	}	
+
+
+		
+		setTimeout(function () {
+		if( num !=-1)
+		{
+			if(pTrack == 1)
+			{	
+			blocks[pNum].normal();	
+			var pdefIdList = blocks[pNum].LineDefId;
+			var plineList = blocks[pNum].Line;
+			}
+			else 
+			{
+			blocks1[pNum].normal();	
+			var pdefIdList = blocks1[pNum].LineDefId;
+			var plineList = blocks1[pNum].Line;
+
+			
+
+
+			}	
+			var str;
+
+
+			for(var i=0; i< plineList.length;i++)
+			{
+				
+				plineList[i].strokeLinearGradient (pdefIdList[i], 2);
+
+
+
+			}	
+
+				
+		}
+		else
+		{
+
+			num = 0;
+
+		}	
+		
+		blocks[num].select();
+
+		var lineList = blocks[num].Line;
+		var nextTrack = -1;
+		var nextNum = -1;
+		var randomNum =0;
+
+		for(var i =0; i < lineList.length; i++)
+		{
+
+			lineList[i].attr({stroke:"#114141"});
+			randomNum = Math.random();
+			if(randomNum < (sessionStorage.pJump/100))
+			{
+				if(blocks[num].otherLineIndex[i] != pNum && jumpedNum != 1)
+				{	
+				nextTrack = 2;
+				nextNum = blocks[num].otherIndex[i];
+				}
+			}	
+
+		}
+		myBarChartL.datasets[0].bars[0].value = 100 + blocks[num].loudness;
+		myBarChartP.datasets[0].bars[0].value = blocks[num].pitch;
+		myBarChartT.datasets[0].bars[0].value = blocks[num].timbre;
+		myPieChart.segments[0].value = myPieChart.segments[0].value +1;
+		myPieChart.update();
+		myBarChartL.update();
+		myBarChartP.update();
+		myBarChartT.update();
+		document.getElementById("BlockNum").textContent = blocks[num].number;
+		document.getElementById("TrackNum").textContent = 1;
+
+		if(nextTrack == -1 && nextNum == -1)
+		{
+			jumpedNum = 0;
+			play(track,num+1,track,num);
+
+		}
+		else
+		{
+			jumpedNum = 1;
+			play(nextTrack,nextNum,track,num);
+
+
+		}	
+		
+		}, 1000*delay);
+	
+	
+}
+
+else if(track == 2)
+{
+
+	if(num != -1)
+	{	
+		var delay = blocks1[num].beat.duration;
+		player.queue(blocks1[num].beat);
+	}
+	else
+	{
+		var delay = blocks1[0].beat.duration;
+		player.queue(blocks1[0].beat);
+
+	}
+		
+		setTimeout(function () {
+	
+		if( num !=-1)
+		{
+			if(pTrack == 1)
+			{	
+			blocks[pNum].normal();	
+			var pdefIdList = blocks[pNum].LineDefId;
+			var plineList = blocks[pNum].Line;
+			}
+			else 
+			{
+			blocks1[pNum].normal();	
+			var pdefIdList = blocks1[pNum].LineDefId;
+			var plineList = blocks1[pNum].Line;
+
+			
+
+
+			}	
+			var str;
+
+			
+			for(var i=0; i< plineList.length;i++)
+			{
+				
+				plineList[i].strokeLinearGradient (pdefIdList[i], 2);
+
+			
+			}	
+			
+				
+		}
+    	else
+		{
+
+			num = 0;
+
+		}	
+		
+		blocks1[num].select();
+
+		var lineList = blocks1[num].Line;
+		var nextTrack = -1;
+		var nextNum = -1;
+		var randomNum =0;
+
+		for(var i =0; i < lineList.length; i++)
+		{
+
+			lineList[i].attr("stroke", "#114141");
+			randomNum = Math.random();
+			if(randomNum < (sessionStorage.pJump/100))
+			{
+				if(blocks1[num].otherIndex[i] != pNum && jumpedNum != 1)
+				{
+				nextTrack = 1;
+				nextNum = blocks1[num].otherIndex[i];
+				
+				}
+			}	
+
+		}
+		myBarChartL.datasets[0].bars[0].value = 100 + blocks1[num].loudness;
+		myBarChartP.datasets[0].bars[0].value = blocks1[num].pitch;
+		myBarChartT.datasets[0].bars[0].value = blocks1[num].timbre;
+		myPieChart.segments[1].value = myPieChart.segments[1].value +1;
+		myPieChart.update();
+		myBarChartL.update();
+		myBarChartP.update();
+		myBarChartT.update();
+		document.getElementById("BlockNum").textContent = blocks1[num].number;
+		document.getElementById("TrackNum").textContent = 2;
+
+		if(nextTrack == -1 && nextNum == -1)
+		{
+			jumpedNum = 0;	
+			play(track,num+1,track,num);
+
+		}
+		else
+		{	jumpedNum =1;
+			play(nextTrack,nextNum,track,num);
+
+
+		}	
+		
+		}, 1000*delay);
+	
+	
+	}
+
+}
+
+}
+else
+{
+	if(pTrack == 1)
+	{	
+	blocks[pNum].normal();	
+	var pdefIdList = blocks[pNum].LineDefId;
+	var plineList = blocks[pNum].Line;
+	for(var i=0; i< plineList.length;i++)
+			{
+				
+				plineList[i].strokeLinearGradient (pdefIdList[i], 2);
+
+			
+			}	
+	}
+	else
+	{
+		blocks1[pNum].normal();	
+		var pdefIdList = blocks1[pNum].LineDefId;
+		var plineList = blocks1[pNum].Line;
+		for(var i=0; i< plineList.length;i++)
+				{
+				
+				plineList[i].strokeLinearGradient (pdefIdList[i], 2);
+
+			
+				}		
+
+		
+
+
+	}	
+
+}	
+}
+
+function stop()
+{
+	isStopped =1;
+	isPlaying =0;	
+	player.stop();
+
+}	
+
+
+// Get an estimation of analysis time
+function fetchQinfo() {
+    var url = 'http://remix.echonest.com/Uploader/qinfo?callback=?'
+    $.getJSON(url, {}, function(data) {
+        $("#info").text("Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
+        $("#info1").text("Track 1 loaded successfully!  Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
+
+    });
+}
+
+// Get the analysis, if it is ready
+function analyzeAudio(audio, tag, callback) {
+    var url = 'http://remix.echonest.com/Uploader/qanalyze?callback=?'
+    $.getJSON(url, { url:audio, api_key:apiKey, tag:tag}, function(data) {
+		if (data.status === 'done' || data.status === 'error') {
+            callback(data);
+        } else {
+            $("#info").text(data.status + ' - ready in about ' + data.estimated_wait + ' secs. ');
+			$("#info1").text(data.status + ' - ready in about ' + data.estimated_wait + ' secs. ');
+            setTimeout(function() { analyzeAudio(audio, tag, callback); }, 8000);
+        } 
+    });
+}
+
+				  
+
+
+//program starts here
+function init() {
+
+	 var contextFunction = window.webkitAudioContext || window.AudioContext;
+    if (contextFunction === undefined) {
+        $("#info").text("Sorry, this app needs advanced web audio. Your browser doesn't"
+            + " support it. Try the latest version of Chrome?");
+    }
+    // Read the URL query string to decide what to do
+    var params = {};
+    var q = document.URL.split('?')[1];
+    if(q != undefined){
+        q = q.split('&');
+        for(var i = 0; i < q.length; i++){
+            var pv = q[i].split('=');
+            var p = pv[0];
+            var v = pv[1];
+            params[p] = v;
+        }
+    }
+	if('trid1' in params)
+	{
+
+		trid1 = params['trid1'];
+
+
+	}
+	if('trid2' in params)
+	{
+
+		trid2 = params['trid2'];
+
+	}
+	
+	if(trid1) 
+	{	
+
+		if(!trid2)
+		{	
+		$("#select-track").remove();
+		$("#select-track1").removeClass("hidden");
+		$("#infoO").hide();
+		fetchSignature();
+		//fetchQinfo();	
+		}
+	}	
+	else
+	{	
+
+		if(!trid2 && !('key' in params))
+		{	
+		$("#inputParem").removeClass("hidden");
+		//$(".MusicStatus").hide();
+		 $("#play-remix").hide();
+
+		
+		}
+
+
+		$("#infoO1").hide();
+
+
+	}	
+
+
+    if ('key' in params) {
+        // We just uploaded a track.
+        // We need to log the trackID and the URL, and then redirect.
+        $("#select-track").hide();
+		$("#select-track1").hide();
+        $("#play-remix").hide();
+        $("#info").text("Analyzing track 1 audio...");
+	    $("#info1").text("Analyzing track 2 audio...");
+        trackURL = 'http://' + params['bucket'] + '/' + urldecode(params['key']);
+
+        analyzeAudio(trackURL, 'tag', function(data) {
+            if (data.status === 'done') {
+				 var newUrl = location.protocol + "//" +  location.host + location.pathname;
+				 if(trid1)
+				 {
+
+					newUrl = newUrl + "?trid1="+trid1 + "&trid2="+data.trid;
+
+				 }
+				 else
+				 {
+
+					newUrl = newUrl + "?trid1="+data.trid;
+
+				 }
+				 location.href = newUrl;
+			
+
+            }
+        });
+    } 
+
+   else  if (trid1 && trid2) 
+   {   
+	   // We were passed a trackID directly in the url
+        // We can remix the track we get back!
+        //trackID = params['trid'];
+	   	$("#select-track").hide();
+		$("#select-track1").hide();
+		$("#infoO").show();
+		$("#infoO1").show();
+
+
+
+		
+        var urlXHR = getProfile(trid1, function(data) {
+			
+            trackURL = data.url;
+		    if (data.status == true) {
+                console.log("Track 1 ready to remix");
+                                
+                // Only use the filesystem if we have access to it.
+                //if (window.File && window.FileReader && window.FileList && window.Blob && window.webkitRequestFileSystem) {
+                //    window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+                //    window.requestFileSystem(window.TEMPORARY, 1024*1024, function(filesystem) {
+               //         fs = filesystem;
+               //     }, fileErrorHandler);
+               // }
+
+             if(!remixer) 
+			 {	var context = new contextFunction();
+                remixer = createJRemixer(context, $, apiKey);
+                player = remixer.getPlayer();
+
+			 }                     
+             
+                $("#info").text("Loading track 1 analysis data...");
+
+				
+				ctxProg = document.getElementById("myChartProg").getContext("2d");
+				var Progdata = [
+    			{
+        			value: 0,
+        			color:"#4fffd3",
+        			highlight:"#69ffd9",
+        			label: "loaded"
+    			},
+    			{
+        			value: 100,
+        			color:"#cdfff3",
+        			highlight:"#e7fff9",
+        			label: "Not loaded"
+    			}
+    			]
+ ProgChart = new Chart(ctxProg).Doughnut(Progdata,{ animation: false, animationEasing: "linear",showTooltips: false, segmentStrokeColor:"#fdf6e3"});
+
+
+
+				
+				remixer.remixTrackById(trid1, trackURL, function(t, percent) {
+                    track1 = t;
+									
+					ProgChart.options.animation = true;
+					ProgChart.options.animationSteps = 30;
+					ProgChart.segments[1].value = 100 - percent;
+					ProgChart.segments[0].value = percent;
+					ProgChart.update();
+
+                    $("#info").text(percent + "% of the track 1 loaded...");
+                    if (percent == 100) {
+                        $("#info").text(percent + "% of the track 1 loaded, preparing...");
+                    }
+
+                    if (track1.status == 'ok') {
+                        $("#info").text("Track 1 ready to remix!");
+						
+					
+						Mashup(1);
+
+                        $('.btn-original').removeAttr('disabled');
+                    }
+                    else if (track1.status == 'error' ) {
+                       // $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+					 }
+
+                });
+            }
+            else {
+                console.log("Track id error.");
+                $("#play-remix").hide();
+                $("#select-track").show();
+                $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                $("#redirect-url").attr('value', document.URL);
+
+                $("#file").change( 
+                    function() {
+                        //fetchQinfo();
+                        var filename = $("#file").val();
+                        if (endsWith(filename.toLowerCase(), ".mp3")) {
+                            $("#f-filename").attr('value', fixFileName(filename));
+                            $("#upload").removeAttr('disabled');
+                        } else {
+                            alert('Sorry, this app only supports MP3s');
+                            $("#upload").attr('disabled', 'disabled');
+                        }
+                    }
+                );
+                fetchSignature();
+            }
+				
+				
+		});
+
+		
+		//##########################end of first file upload#####################
+	
+		  var urlXHR1 = getProfile(trid2, function(data) {
+            trackURL = data.url;
+		  if (data.status == true) {
+                console.log("Track 2 ready to remix");
+             
+             if(!remixer) 
+		     {	var context = new contextFunction();
+                remixer = createJRemixer(context, $, apiKey);
+                player = remixer.getPlayer();
+
+			 }                     
+
+                                  
+             
+                $("#info1").text("Loading track 2 analysis data...");
+
+				ctxProg1 = document.getElementById("myChartProg1").getContext("2d");
+				var Progdata1 = [
+    			{
+        			value: 0,
+        			color:"#7a4eff",
+        			highlight:"#8d68ff",
+        			label: "loaded"
+    			},
+    			{
+        			value: 100,
+        			color:"#c6b6ff",
+        			highlight:"#dad0ff",
+        			label: "Not loaded"
+    			}
+    			]
+ ProgChart1 = new Chart(ctxProg1).Doughnut(Progdata1,{ animation: false, animationEasing: "linear",showTooltips: false,segmentStrokeColor : "#fdf6e3"});
+
+
+
+			
+                remixer.remixTrackById(trid2, trackURL, function(t, percent) {
+
+					track2 = t;
+					
+					ProgChart1.options.animation = true;
+					ProgChart1.options.animationSteps = 30;
+					ProgChart1.segments[1].value = 100 - percent;
+					ProgChart1.segments[0].value = percent;
+					ProgChart1.update();
+
+
+                    
+					$("#info1").text(percent + "% of the track 2 loaded...");
+                    if (percent == 100) {
+                        $("#info1").text(percent + "% of the track 2 loaded, preparing...");
+                    }
+
+                    if (track2.status == 'ok') {
+                        $("#info1").text("Track 2 ready to remix!");
+						
+						//Mashup(2);
+
+                        //$('.btn-original').removeAttr('disabled');
+                    }
+                    else if (track2.status == 'error' ) {
+                        $("#info1").text("Error getting the track URL - please try again, or re-upload the file.");
+					}
+
+                });
+            }
+            else {
+                console.log("Track id error.");
+                $("#play-remix").hide();
+                $("#select-track").show();
+                $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                $("#redirect-url").attr('value', document.URL);
+
+                $("#file").change( 
+                    function() {
+                        //fetchQinfo();
+                        var filename = $("#file").val();
+                        if (endsWith(filename.toLowerCase(), ".mp3")) {
+                            $("#f-filename").attr('value', fixFileName(filename));
+                            $("#upload").removeAttr('disabled');
+                        } else {
+                            alert('Sorry, this app only supports MP3s');
+                            $("#upload").attr('disabled', 'disabled');
+                        }
+                    }
+                );
+                fetchSignature();
+            }
+        });
+
+
+
+
+
+    } else {
+        // We're waiting for the user to pick a track and upload it
+	    $("#play-remix").hide();
+        $("#redirect-url").attr('value', document.URL);
+
+        $("#file").change( 
+            function() {
+				var filename = $("#file").val();
+                if (endsWith(filename.toLowerCase(), ".mp3")) {
+                    $("#f-filename").attr('value', fixFileName(filename));
+                    $("#upload").removeAttr('disabled');
+                } else {
+                    alert('Sorry, this app only supports MP3s');
+                    $("#upload").attr('disabled', 'disabled');
+                }
+            }
+        );
+        fetchSignature();
+        fetchQinfo();
+		
+    }
+}
+
+//"use strict";
+function submitForm(oFormElement)
+{
+
+	sessionStorage.pConnect = document.getElementById("rangeInput").value;
+	sessionStorage.pJump = document.getElementById("rangeInputJump").value;
+	sessionStorage.connectMax = document.getElementById("rangeInputConnection").value;
+	if($("#myonoffswitch").is(':checked'))
+	{	sessionStorage.isInfinite = 1;
+
+	}	
+	else
+	{
+		sessionStorage.isInfinite =0;
+		
+	}	
+
+	
+	
+
+	 $("#inputParem").hide();
+  	 $("#select-track").hide();
+ 	 	
+
+    //check whether browser fully supports all File API
+    if (window.File && window.FileReader && window.FileList && window.Blob)
+    {
+        //get the file size and file type from file input field
+        var fsize = $('#file')[0].files[0].size;
+		fsize = (fsize/1000000).toFixed(2);
+		$('#info').text("Uploading Track 1 -  "+fsize+" MB");
+        
+	}
+
+}
+function submitForm1(oFormElement)
+{
+   $("#select-track1").hide();
+
+	 //check whether browser fully supports all File API
+    if (window.File && window.FileReader && window.FileList && window.Blob)
+    {
+        //get the file size and file type from file input field
+        var fsize = $('#file')[0].files[0].size;
+		fsize = (fsize/1000000).toFixed(2);
+		$('#info1').text("Uploading Track 2 -  "+fsize+" MB");
+        
+	}
+
+}
+function removeExcess(exTrackNumber, exBlockNumber, connectNumList)
+{
+	var i =0;
+	var currentMax;
+	var maxOtherIndex;
+	var maxThisIndex;
+	var diffrence = connectNumList.length - sessionStorage.connectMax;
+	
+	if(exTrackNumber ==1)
+	{	
+
+		i =0;
+	while(i<diffrence)
+	{
+		
+		currentMax = blockDiffList[exBlockNumber][connectNumList[i]];
+		maxOtherIndex = connectNumList[i];
+		maxThisIndex = i;
+		for(var j =0; j<connectNumList.length; j++)
+		{
+			if(blockDiffList[exBlockNumber][connectNumList[j]]>=currentMax)
+			{
+				currentMax = blockDiffList[exBlockNumber][connectNumList[j]];
+				maxOtherIndex = connectNumList[j];
+				maxThisIndex = j;
+				
+
+			}	
+
+
+
+		}
+		
+		blockDiffList[exBlockNumber][maxOtherIndex] = -1;
+		
+	
+
+		i = i+1;
+
+
+	
+		
+
+
+	}
+		
+
+	}
+	if(exTrackNumber ==2)
+	{	
+
+	i =0;	
+	while(i<diffrence)
+	{	
+		currentMax = blockDiffList[connectNumList[i]][exBlockNumber];
+		maxOtherIndex = connectNumList[i];
+		maxThisIndex = i;
+		for(var j =0; j<connectNumList.length; j++)
+		{
+			if(blockDiffList[connectNumList[j]][exBlockNumber]>=currentMax)
+			{
+				currentMax = blockDiffList[connectNumList[j]][exBlockNumber];
+				maxOtherIndex = connectNumList[j];
+				maxThisIndex = j;
+				
+
+			}	
+
+
+
+		}
+		
+		blockDiffList[maxOtherIndex][exBlockNumber]= -1;
+			
+
+		i = i+1;
+
+
+	
+		
+
+
+	}	
+
+
+
+
+		
+
+	}
+
+
+
+}	
+function filterLinks(block1List, block2List)
+{	
+
+	var doneList = [];
+	var doneListCounter =0;
+	var currBlock =0;
+	var connectionToOther = [];
+	var connectionToOtherCounter =0;
+	for(var i =0; i<block1List.length; i++)
+	{
+		currBlock = block1List[i];
+		connectionToOtherCounter =0;
+        connectionToOther = [];
+		if($.inArray(currBlock,doneList) == -1)
+		{		
+				
+	
+
+			for(var j =0; j<block1List.length; j++)
+			{
+		
+				if(block1List[j] == currBlock)
+				{
+					connectionToOther[connectionToOtherCounter] = block2List[j];
+					connectionToOtherCounter = connectionToOtherCounter +1;
+					
+					
+			
+				}	
+		
+			}
+			doneList[doneListCounter] = currBlock;
+			doneListCounter = doneListCounter+1;
+			removeExcess(1,currBlock,connectionToOther);
+		}
+		
+	}
+	doneList = [];
+	doneListOCunter =0;
+
+
+	for(var i =0; i<block2List.length; i++)
+	{
+		currBlock = block2List[i];
+		connectionToOtherCounter =0;
+        connectionToOther = [];
+
+		if($.inArray(currBlock,doneList) == -1)
+		{		
+
+			
+
+			for(var j =0; j<block2List.length; j++)
+			{
+		
+				if(block2List[j] == currBlock && blockDiffList[block1List[j]][currBlock] != -1)
+				{
+					connectionToOther[connectionToOtherCounter] = block1List[j];
+					connectionToOtherCounter = connectionToOtherCounter +1;
+									
+			
+				}	
+		
+			}
+			doneList[doneListCounter] = currBlock;
+			doneListCounter = doneListCounter+1;
+			removeExcess(2,currBlock,connectionToOther);
+		}
+		
+	}	
+	
+
+
+
+
+
+}	
+function calculateLinks()
+{	
+
+
+//var blockDiffList = [[]];
+var blockNormList = [];
+var result;
+var listNum =0;
+
+
+	for(var i =0; i<blocks.length; i++)
+	{
+
+		for(var j = 0; j<blocks1.length; j++)
+		{
+			
+			
+				
+			result = beatDistance(track1.analysis.beats[i],track2.analysis.beats[j]);
+			blockNormList[listNum] = result;
+			if(!blockDiffList[i])
+			{
+				blockDiffList[i] = [];	
+			}	
+			blockDiffList[i][j] = result;
+			listNum = listNum +1;
+			
+			
+
+		}	
+		
+		
+
+	}	
+
+	diffArray = blockNormList;
+	calculateMeanAndStd();
+	var percentage =0;
+
+	var TrackIndexNum =0;
+
+	var selectBlock1List = [];
+	var selectBlock2List = [];
+
+	for(var i =0; i<blocks.length; i++)
+	{
+
+		for(var j = 0; j<blocks1.length; j++)
+		{
+			
+			percentage = compute(blockDiffList[i][j],diffMean,diffStd);
+		if(percentage<(sessionStorage.pConnect/100))
+			{
+					
+				//drawLine(blocks[i],blocks1[j]);
+				firstTrackIndex[TrackIndexNum] = blocks[i];
+				secondTrackIndex[TrackIndexNum] = blocks1[j];
+				selectBlock1List[TrackIndexNum] = i;
+				selectBlock2List[TrackIndexNum] = j;
+				TrackIndexNum = TrackIndexNum +1;
+
+			}	
+			
+			
+
+		}	
+
+
+	}
+	
+
+	$("#infoO1").hide();
+	$("#info").text("Creating connections between tracks");
+	filterLinks(selectBlock1List,selectBlock2List);
+	
+	for(var i=0;i<TrackIndexNum;i++)
+	{
+		if(blockDiffList[selectBlock1List[i]][selectBlock2List[i]] ==-1)
+		{   
+			firstTrackIndex[i] = -1;
+			secondTrackIndex[i] = -1;
+
+			
+		}
+	
+
+	}	
+
+	
+
+	var contextConnectionProg = document.getElementById("myChartProg").getContext('2d');
+	contextConnectionProg.clearRect(0, 0,  document.getElementById("myChartProg").width,  document.getElementById("myChartProg").height);
+	
+			var ConnectionData1 = [
+    			{
+        			value: 0,
+        			color:"#e89600",
+        			highlight:"#ffa602",
+        			label: "loaded"
+    			},
+    			{
+        			value: TrackIndexNum,
+        			color:"#ffd381",
+        			highlight:"#ffe5b4",
+        			label: "Not loaded"
+    			}
+    			]
+ 
+	var myConnectionChart = new Chart(contextConnectionProg).Doughnut(ConnectionData1,{ animation: false, animationEasing: "linear",showTooltips: false,segmentStrokeColor : "#fdf6e3"});
+
+
+		for(var i =0; i<TrackIndexNum; i++)
+		{
+			
+					myConnectionChart.options.animation = true;
+					myConnectionChart.options.animationSteps = 10;
+					myConnectionChart.segments[1].value = myConnectionChart.segments[1].value -1;
+					myConnectionChart.segments[0].value = myConnectionChart.segments[0].value +1;
+					myConnectionChart.update();
+					if(firstTrackIndex[i] != -1 && secondTrackIndex[i] != -1)
+					{	
+					drawLine(firstTrackIndex[i],secondTrackIndex[i]);
+					}
+
+
+
+
+
+		}	
+		$("#info").text("Ready to play.");
+		$("#play-remix").removeClass("hidden");
+		$("#musicTilesStatus").removeClass("hidden");
+
+
+
+
+}
+
+function beatDistance(beat1,beat2)
+{	
+var segmentBeat1 = []; 
+	segmentBeat1 = beat1.overlappingSegments;
+var segmentBeat2 = [];
+	segmentBeat2 = beat2.overlappingSegments;
+
+var beatDiff = 0;
+var segmentNum = 0;
+
+while( segmentBeat1[segmentNum] && segmentBeat2[segmentNum])
+{
+
+	beatDiff = beatDiff + segmentDistance(segmentBeat1[segmentNum],segmentBeat2[segmentNum]);
+	segmentNum = segmentNum +1;
+
+
+}	
+
+
+return beatDiff/segmentNum;
+
+
+
+}
+function segmentDistance(segment1,segment2)
+{
+
+	var timbreDiff = getDistance(segment1.timbre,segment2.timbre);
+	var pitchDiff = getDistance(segment1.pitches, segment2.pitches);
+	var loudStartDiff = Math.abs(segment1.loudness_start - segment2.loudness_start);
+	var loudMaxDiff = Math.abs(segment1.loudness_max -segment2.loudness_max);
+	var durationDiff = Math.abs(segment1.duration - segment2.duration);
+	var confidenceDiff = Math.abs(segment1.confidence - segment2.confidence);
+	var distance = (timbreDiff * timbreW) + (pitchDiff * pitchW) + (loudStartDiff * loudStartW) + (loudMaxDiff * loudMaxW) + (durationDiff *durationW) + (confidenceDiff * confidenceW);
+	return distance;
+
+
+
+}
+function getDistance(element1, element2)
+{
+	var TotalSum =0;
+	var diff =0;
+
+	for(var i =0; i<element1.length; i++)
+	{
+
+		if(element1[i] && element2[i])
+		{
+
+			diff = element1[i] -element2[i];
+			TotalSum = TotalSum + diff*diff;
+
+		}	
+
+
+	}	
+
+	return Math.sqrt(TotalSum);
+
+
+
+
+
+}	
+
+
+
+
+
+//http://www.math.ucla.edu/~tom/distributions/normal.html
+function normalcdf(X){   
+var T=1/(1+.2316419*Math.abs(X));
+var D=.3989423*Math.exp(-X*X/2);
+var Prob=D*T*(.3193815+T*(-.3565638+T*(1.781478+T*(-1.821256+T*1.330274))));
+if (X>0) 
+{	
+	Prob=1-Prob
+}	
+return Prob
+}
+function compute(num,mean,stdev) {  
+	Z= num;  
+	M= mean;  
+	SD= stdev; 
+	with (Math) {		
+		if (SD<0) {	
+			alert("The standard deviation must be nonnegative.")
+		} else if (SD==0) {
+			if (Z<M){
+				Prob=0	
+			} else {	
+				Prob=1
+			}	
+		} else {	
+			Prob=normalcdf((Z-M)/SD);
+			Prob=round(100000*Prob)/100000;
+		}	
+	}   
+	return Prob;
+}
+
+function calculateMeanAndStd()
+{
+
+var mean = 0;
+var std = 0;
+var sum = 0;
+var meanSum =0;
+for(var i =0; i<diffArray.length; i++)
+	{
+		sum = sum + diffArray[i];	
+			
+
+
+	}
+
+ mean = sum / diffArray.length;
+ diffMean = mean;
+
+for(var j =0; j<diffArray.length; j++)
+	{
+		meanSum = meanSum +  ( mean - diffArray[j])*(mean-diffArray[j]);
+					
+
+
+	}	
+
+	var variance = meanSum/diffArray.length;
+	std = Math.sqrt(variance);
+	diffStd = std;
+
+
+
+
+}	
+
+/*global Raphael:true*/
+//http://stackoverflow.com/questions/4771517/raphael-js-path-line-with-gradient
+(function() {
+    if (Raphael.vml) {
+        Raphael.el.strokeLinearGradient = function() {
+            // not supporting VML yet
+            return this; // maintain chainability
+        };
+    } else {
+        var setAttr = function(el, attr) {
+            var key;
+            if (attr) {
+                for (key in attr) {
+                    if (attr.hasOwnProperty(key)) {
+                        el.setAttribute(key, attr[key]);
+                    }
+                }
+            } else {
+                return document.createElementNS("http://www.w3.org/2000/svg", el);
+            }
+
+            return null;
+        };
+
+        var defLinearGrad = function(defId, stops) {
+            var def = setAttr("linearGradient");
+            var i, l;
+            def.id = defId;
+
+            for (i = 0, l = stops.length; i < l; i += 1) {
+                var stopEle = setAttr("stop");
+                var stop = stops[i];
+                setAttr(stopEle, stop);
+
+                def.appendChild(stopEle);
+            }
+
+            return def;
+        };
+
+        Raphael.el.strokeLinearGradient = function(defId, width, stops) {
+
+            if (stops) {
+                this.paper.defs.appendChild(defLinearGrad(defId, stops));
+            }
+
+            setAttr(this.node, {
+                "stroke": "url(#" + defId + ")",
+                "stroke-width": width
+            });
+
+            return this; // maintain chainability
+        };
+
+        Raphael.st.strokeLinearGradient = function(defId, width, stops) {
+            return this.forEach(function(el) {
+                el.strokeLinearGradient(defId, width, stops);
+            });
+        };
+
+        Raphael.fn.defineLinearGradient = function(defId, stops) {
+			
+			
+
+            this.defs.appendChild(defLinearGrad(defId, stops));
+        };
+    }
+}());
+
+
+
+
+
+
+window.onload = init;
+</script>
+
+       
+    <div class="container">
+		<span id="programTitle">SwitchBeat&nbsp;&nbsp;<span class="musicAndCode">{</span><i class="fa  fs-fw fa-music"></i><span class="musicAndCode">}</span></span>
+		<span id="programDescrip">&nbsp;&nbsp;&nbsp;&nbsp;<em>Mashup two of your favorite songs</em></span><br><br>
+       	<div id="inputParem" class="hidden">
+			<h3><i class="fa fa-toggle-on fa-fw optionicon" style="color:green"></i>&nbsp;&nbsp;Options</h3>
+			<hr>
+		<span id="sliderThreshold">Select the percentage cut off for music connections:
+			<form oninput="amount.value=rangeInput.value">
+    		<input type="range" id="rangeInput" name="rangeInput" min=".01" max="10" value="3" step=".01">                                                       
+        	&nbsp;<output name="amount" for="rangeInput">3</output>%
+        </form>
+		</span>
+		<span id="sliderJump">Select the probability for a connection jump:
+			<form oninput="JumpAmount.value=rangeInputJump.value">
+    		<input type="range" id="rangeInputJump" name="rangeInputJump" min=".1" max="100" value="30" step=".1">                                                       
+        	&nbsp;<output name="JumpAmount" for="rangeInputJump">30</output>%
+			
+			</form>
+		</span>
+		<span id="sliderConnection">Select the maximum connections per beat:
+			<form oninput="ConnectionAmount.value=rangeInputConnection.value">
+    		<input type="range" id="rangeInputConnection" name="rangeInputConnection" min="1" max="10" value="4" step="1">                                                       
+        	&nbsp;<output name="ConnectionAmount" for="rangeInputConnection">4</output>
+			
+			</form>
+		</span>
+			<span id="switchText" style="
+  			  /* height: 20px; */
+   			 line-height: 2;
+			">Infinite Mode - end of one track will jump to the start of another</span>
+			&nbsp;<div class="onoffswitch">
+			<input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
+    		<label class="onoffswitch-label" for="myonoffswitch">
+        	<span class="onoffswitch-inner"></span>
+        	<span class="onoffswitch-switch"></span>
+    		</label>
+			</div>
+        </form>
+		</span>
+		</div>
+
+		<br>
+
+		<div id = "uploadParem">
+			<h3><i class="fa fa-upload fa-fw" style="color:#683A5E"></i>&nbsp;&nbsp;Upload</h3>
+			<hr>
+		<span id="infoO"><span id="info"></span>&nbsp;&nbsp;<canvas id="myChartProg" width="25" height="25"></canvas><br></span>
+		<span id="infoO1"><span id="info1"></span>&nbsp;&nbsp;<canvas id="myChartProg1" width="25" height="25"></canvas><br></span>
+		
+
+        <section>
+        <div id='select-track'>
+            <form action="https://s3.amazonaws.com/static.echonest.com" method="post" enctype="multipart/form-data" onSubmit="submitForm(this);">
+              <input id='f-filename' type="hidden" name="key" value="remix_audio/${filename}">
+              <input id='f-key' type="hidden" name="AWSAccessKeyId" value="YOUR_AWS_ACCESS_KEY"> 
+              <input type="hidden" name="acl" value="public-read"> 
+              <input id='redirect-url' type="hidden" name="success_action_redirect"
+                  value="YOUR_URL">
+              <input id='f-policy' type="hidden" name="policy" value="YOUR_POLICY_DOCUMENT_BASE64_ENCODED">
+              <input id='f-signature' type="hidden" name="signature" value="YOUR_CALCULATED_SIGNATURE">
+              <input type="hidden" name="Content-Type" value="audio/mpeg">
+			  Select the first <b>mp3</b> to upload : <input  id="file" name="file" type="file"> 
+              <br>
+              <input class="btn btn-primary btn-default" id='upload' type="submit" value="Upload MP3"> 
+            </form> 
+        </div>
+		<div id='select-track1' class='hidden'>
+            <form action="https://s3.amazonaws.com/static.echonest.com" method="post" enctype="multipart/form-data" onSubmit="submitForm1(this);">
+              <input id='f-filename' type="hidden" name="key" value="remix_audio/${filename}">
+              <input id='f-key' type="hidden" name="AWSAccessKeyId" value="YOUR_AWS_ACCESS_KEY"> 
+              <input type="hidden" name="acl" value="public-read"> 
+              <input id='redirect-url' type="hidden" name="success_action_redirect"
+                  value="YOUR_URL">
+              <input id='f-policy' type="hidden" name="policy" value="YOUR_POLICY_DOCUMENT_BASE64_ENCODED">
+              <input id='f-signature' type="hidden" name="signature" value="YOUR_CALCULATED_SIGNATURE">
+              <input type="hidden" name="Content-Type" value="audio/mpeg">
+			  Select the second <b>mp3</b> to upload : <input  id="file" name="file" type="file"> 
+              <br>
+              <input class="btn btn-primary btn-default" id='upload' type="submit" value="Upload MP3"> 
+            </form> 
+        </div>
+		
+		<div id="status"></div>
+
+        </section>
+		</div>	
+        <section id='play-remix' class="hidden">
+            <br />
+            <button class='btn btn-inverse btn-remixed' onClick="playClicked();"><i class="fa  fa-fw fa-play"></i>&nbsp;Play</button>
+            <button class='btn btn-remixed' onClick="stop();"><i class="fa fa-fw fa-stop"></i>&nbsp;Stop</button>
+            <span id='downloadButton'></a>
+            </div>
+			<div id="musicTilesStatus" class="hidden">
+			<div id='tiles' ></div>
+			<div class="MusicStatus">
+			&nbsp;&nbsp;	
+			<canvas id="myChartL" width="50" height="50"></canvas>
+			<canvas id="myChartP" width="50" height="50"></canvas>
+			<canvas id="myChartT" width="50" height="50"></canvas>
+			&nbsp;
+			 Block: <span id='BlockNum'> 1 </span>
+			&nbsp;
+			Track: <span id='TrackNum'> 1 </span>
+			&nbsp;&nbsp;
+			<canvas id="myChartTrack" width="50" height="50"></canvas>
+			<br>
+			<span id="chartLabels" style="
+    font-size: 12px;
+">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Loud&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pitch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Timbre&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Track ratio</span>
+			</div>
+			</div>
+        </section>
+   
+  </div> <!-- /container -->
+<footer>
+	<br>
+	<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Brought to you by:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://the.echonest.com/"> <img src="images/EchoNest.png" alt="EchoNest"></a> 
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://pages.github.com/"><img src="images/github.png" alt="Github Pages" height="29"></a> 	
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://jekyllrb.com/"><img src="images/jekyll.png" alt="Jekyll"></a> 	
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><i class="icon-javascript" style="color:#ffbf00; font-size: 72px; position: relative; top: -30px;"></i></a><br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="bottomTitle">SwitchBeat</span> is coded by <span id ="name">Nikhil Kumar </span> inspired by <a href="http://labs.echonest.com/Uploader/index.html" style="color:#d33682">The Infinite Jukebox</a>, check out more at <a href="http://kumarcode.com/" style="color:#dc322f">Kumarcode.com</a>
+</footer>
+</body>
+
+<style>#forkongithub a{background:#482841;color:#fff;text-decoration:none;font-family:arial,sans-serif;text-align:center;font-weight:bold;padding:5px 40px;font-size:1rem;line-height:2rem;position:relative;transition:0.5s;}#forkongithub a:hover{background:#c11;color:#fff;}#forkongithub a::before,#forkongithub a::after{content:"";width:100%;display:block;position:absolute;top:1px;left:0;height:1px;background:#fff;}#forkongithub a::after{bottom:1px;top:auto;}@media screen and (min-width:800px){#forkongithub{position:absolute;display:block;top:0;right:0;width:200px;overflow:hidden;height:200px;z-index:9999;}#forkongithub a{width:200px;position:absolute;top:60px;right:-60px;transform:rotate(45deg);-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);-moz-transform:rotate(45deg);-o-transform:rotate(45deg);box-shadow:4px 4px 10px rgba(0,0,0,0.8);}}</style><span id="forkongithub"><a href="https://github.com/nikhil/SwitchBeat">Fork me on GitHub</a></span>
+</html>

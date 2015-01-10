@@ -1,0 +1,194 @@
+
+#bottomTitle
+{
+
+	color:#2aa198;
+
+}
+
+#name
+{
+
+	color:#6c71c4;
+
+
+}	
+
+
+
+.container{
+
+	padding-top: 50px;
+
+
+}	
+
+footer{
+
+	position:absolute;
+
+}	
+body{
+padding-top: 0px;
+background-color:#eee8d5;
+color: #114141;
+
+
+}	
+.MusicStatus{
+background-color: #fdf6e3;
+
+
+height: 75px;
+width: 400px;
+-webkit-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+-moz-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+border-radius: 3px;
+padding-top: 5px;
+
+}
+
+#rangeInput
+{
+
+
+	width: 85%;
+
+
+
+}
+#rangeInputJump
+{
+
+
+	width: 85%;
+
+
+
+}
+#rangeInputConnection
+{
+
+
+	width: 85%;
+
+
+
+}
+
+#musicTilesStatus
+{
+
+padding-left: 15px;
+padding-top: 10px;
+
+
+
+}	
+#programTitle
+{
+
+font-family: 'Great Vibes', cursive;
+font-size: 50px;
+position:relative;
+top: -25px;
+color:#004C4C;
+}
+.musicAndCode
+{
+
+color:#b37400;
+
+}
+#programTitle i .musicAndCode
+{
+
+color:#004C4C;
+}
+
+#programDescrip
+{
+
+font-family:'Lato';
+position: relative;
+top: -25px;
+color:#004C4C;
+
+
+
+}
+
+#inputParem {
+width: 60%;
+background-color: #fdf6e3;
+padding-left: 40px;
+padding-right: 40px;
+padding-top: 25px;
+padding-bottom: 25px;
+-webkit-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+-moz-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+}
+
+#uploadParem {
+width: 60%;
+background-color: #fdf6e3;
+padding-left: 40px;
+padding-right: 40px;
+padding-top: 25px;
+padding-bottom: 25px;
+-webkit-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+-moz-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+}
+
+
+
+.onoffswitch {
+    position: relative; width: 70px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 18px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
+    -o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 18px; padding: 0; line-height: 18px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #34A7C1; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 25px; margin: -3.5px;
+    background: #FFFFFF;
+    border: 2px solid #999999; border-radius: 18px;
+    position: absolute; top: 0; bottom: 0; right: 48px;
+    -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
+    -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px; 
+}
+
