@@ -19,7 +19,7 @@ between both songs.
 ###How to use it
 ####1. Select the parameters 
 `%` for <b>music connections</b>: Increasing this will increase the number of
-connections created. I have set the default to `3%`.<br>
+connections created. I have set the default to `5%`.<br>
 `%` for <b>connection jump</b>: Increasing this will increase the chance that
 SwitchBeat will jump on this connection. I have set the default to `30%`.<br>
 `#` for <b>maximum connections per beat</b>: Increasing this will increase max
