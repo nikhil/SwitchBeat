@@ -30,9 +30,9 @@ of one song it will jump to the start of another. I have set the default to
 ####2. Upload songs
 You will be asked to upload your songs one by one. 
 <ul>
-<li> Please upload a `.mp3`, `.flacs`, `.m4a`, or `.opus` will not be
+<li> Please upload a .mp3, .flacs, .m4a, or .opus will not be
 accepted</li>
-<li> Try to upload in good quality `320 kbps` or `V0` is fine</li>
+<li> Try to upload in good quality 320 kbps or V0 is fine</li>
 </ul>
 ####3. Wait for the analysis to finish
 ####4. Play the Mashup!
