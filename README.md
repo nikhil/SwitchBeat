@@ -2,6 +2,8 @@
 <img src="SwitchBeat.png" alt="SwitchBeat">
 ##Check it out
 <a href="http://kumarcode.com/switchbeat.html" alt="kumarcode.com/switchbeat">kumarcode.com/switchbeat.html</a>
+##Examples
+<a href="http://kumarcode.com/switchbeatexamples.html" alt="kumarcode.com/switchbeatexamples">kumarcode.com/switchbeatexamples.html</a>
 ##Uses
 <ul>
 <li> Raphaël.js </li>
