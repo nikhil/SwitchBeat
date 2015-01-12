@@ -1,6 +1,8 @@
 // Remix.js
 // Thor Kell & Paul Lamere, 12/2012
 // Based on Paul Lamere's Infinite Jukebox and assorted other javascript projects
+var jsonRetryCount = 9;
+var jsonRetryInterval = 3000;
 
 function createJRemixer(context, jquery, apiKey) {
     var $ = jquery;
@@ -45,8 +47,27 @@ function createJRemixer(context, jquery, apiKey) {
                                     console.log('error', 'No analysis data returned:  try again, or try another trackID');   
                                 }
                             }
-                    }); // end yahoo proxy getJson
+                    }) // end yahoo proxy getJson
+					.fail(function()
+						{
+							console.log("retrying json request");
+							jsonRetryCount = jsonRetryCount -1;
+							if(jsonRetryCount >0)
+							{	
+							  setTimeout(function () {
+                                        lookForAnalysis(trackID, trackURL, callback);
+                                    }, jsonRetryInterval);
+
+
+
+							}
+
+						});	
+
                 });
+									
+						
+				
             } // end lookForAnalysis
             lookForAnalysis(trackID, trackURL, callback);
         },

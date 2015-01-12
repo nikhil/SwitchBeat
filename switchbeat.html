@@ -997,6 +997,12 @@ function fetchQinfo() {
     var url = 'http://remix.echonest.com/Uploader/qinfo?callback=?'
     $.getJSON(url, {}, function(data) {
         $("#info").text("Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
+		if(Math.floor(data.estimated_wait * 1.2)>20)
+		{
+			$("#info").text("Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds. It seems that the servers are a bit slow today. The analysis might not work");
+
+
+		}	
         $("#info1").text("Track 1 loaded successfully!  Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
 
     });
