@@ -1,5 +1,6 @@
 #SwitchBeat
-<img src="SwitchBeat.png" alt="SwitchBeat">
+<img src="SwitchBeat1.png" alt="SwitchBeatWebsite">
+<img src="SwitchBeat.png" alt="SwitchBeatMashup">
 ##Check it out
 <a href="http://kumarcode.com/switchbeat.html" alt="kumarcode.com/switchbeat">kumarcode.com/switchbeat.html</a>
 ##Examples
